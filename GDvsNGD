@@ -1,0 +1,54 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the function and its gradient
+a, b = 1, 1  # Coefficients for the quadratic function
+f = lambda x, y: a*x**2 + b*y**2
+grad_f = lambda x, y: np.array([2*a*x, 2*b*y])
+
+# Gradient Descent Algorithm
+def gradient_descent(f, grad_f, x0, s=0.01, n_iters=100):
+    x = x0
+    values = []
+    for _ in range(n_iters):
+        x -= s * grad_f(*x)
+        values.append(f(*x))
+    return x, values
+
+# Nesterov's Accelerated Gradient Algorithm (Corrected)
+def nesterov_accelerated_gradient(f, grad_f, x0, s=0.01, n_iters=100):
+    x, y = x0, x0
+    xs = []
+    for k in range(1, n_iters + 1):
+        grad = grad_f(*y)
+        x_new = y - s * grad
+        if k > 1:
+            y = x_new + (k - 1) / (k + 2) * (x_new - x)
+        else:
+            y = x_new
+        x = x_new
+        xs.append(f(*x))
+    return x, xs
+
+# Initial point
+x0 = np.array([5.0, 5.0])  # Starting point for both methods
+
+# Perform simulations
+_, gd_values = gradient_descent(f, grad_f, x0, s=0.1, n_iters=40)
+_, nag_values = nesterov_accelerated_gradient(f, grad_f, x0, s=0.1, n_iters=40)
+
+# Calculate the difference f(x, y) - f(x*, y*) for plotting
+gd_diff = [val - f(0, 0) for val in gd_values]
+nag_diff = [val - f(0, 0) for val in nag_values]
+
+# Plotting the comparison
+plt.figure(figsize=(10, 6))
+plt.plot(gd_diff, label='Gradient Descent', color ='red')
+plt.plot(nag_diff, label='Nesterov Accelerated Gradient', color = 'blue')
+plt.xlabel('Iteration')
+plt.ylabel('f(x, y) - f(x*, y*)')
+plt.yscale('log')  # Using log scale for better visibility
+plt.title('Gradient Descent vs Nesterov Accelerated Gradient')
+plt.legend()
+plt.grid(True)
+plt.show()
